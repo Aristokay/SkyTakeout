@@ -9,10 +9,15 @@ import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import java.io.ByteArrayInputStream;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 @Data
 @AllArgsConstructor
 @Slf4j
 public class AliOssUtil {
+    // 手动添加这一行，代替 @Slf4j，绝对不报错！
+    // private static final Logger log = LoggerFactory.getLogger(AliOssUtil.class);
 
     private String endpoint;
     private String accessKeyId;
