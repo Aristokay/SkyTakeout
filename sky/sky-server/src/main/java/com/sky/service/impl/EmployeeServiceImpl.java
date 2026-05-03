@@ -1,16 +1,20 @@
 package com.sky.service.impl;
 
+import com.github.pagehelper.Page;
+import com.github.pagehelper.PageHelper;
 import com.sky.constant.MessageConstant;
 import com.sky.constant.PasswordConstant;
 import com.sky.constant.StatusConstant;
 import com.sky.context.BaseContext;
 import com.sky.dto.EmployeeDTO;
 import com.sky.dto.EmployeeLoginDTO;
+import com.sky.dto.EmployeePageQueryDTO;
 import com.sky.entity.Employee;
 import com.sky.exception.AccountLockedException;
 import com.sky.exception.AccountNotFoundException;
 import com.sky.exception.PasswordErrorException;
 import com.sky.mapper.EmployeeMapper;
+import com.sky.result.PageResult;
 import com.sky.service.EmployeeService;
 
 import java.time.LocalDateTime;
@@ -77,13 +81,57 @@ public class EmployeeServiceImpl implements EmployeeService {
         //设置其他属性
         employee.setStatus(StatusConstant.ENABLE);//正常
         employee.setPassword(DigestUtils.md5DigestAsHex(PasswordConstant.DEFAULT_PASSWORD.getBytes()));//默认值
-        employee.setCreateTime(LocalDateTime.now());
-        employee.setUpdateTime(LocalDateTime.now());
+
+        // employee.setCreateTime(LocalDateTime.now());
+        // employee.setUpdateTime(LocalDateTime.now());
         //动态获取当前登录用户的id
-        employee.setCreateUser(BaseContext.getCurrentId());
-        employee.setUpdateUser(BaseContext.getCurrentId());
+        // employee.setCreateUser(BaseContext.getCurrentId());
+        // employee.setUpdateUser(BaseContext.getCurrentId());
 
         employeeMapper.insert(employee);
+
+    }
+
+    /**
+     * 分页查询实现类
+     */
+    public PageResult pageQuery(EmployeePageQueryDTO employeePageQueryDTO) {
+        //select * from employee limit 0,10
+        PageHelper.startPage(employeePageQueryDTO.getPage(), employeePageQueryDTO.getPageSize());//将page对象存入ThreadLocal，所以能在xml文件里进行limit分页的功能
+        Page<Employee> page = employeeMapper.pageQuery(employeePageQueryDTO);//DAO持久层函数
+        return new PageResult(page.getTotal(), page.getResult());
+    }
+
+    /**
+     * 启用/禁用员工账号 实现类
+     */
+    public void startOrstop(Integer status, Long id) {
+        Employee employee = new Employee();
+        employee.setStatus(status);
+        employee.setId(id);
+        employeeMapper.update(employee);//DAO持久层函数
+    }
+
+    /**
+     * 修改第一步：查询信息
+     */
+    @Override
+    public Employee getByid(Long id) {
+        Employee employee = employeeMapper.getByid(id);//DAO持久层函数
+        employee.setPassword("******");
+        return employee;
+    }
+
+    /**
+     * 修改第二步：update
+     */
+    @Override
+    public void update(EmployeeDTO employeeDTO) {
+        Employee employee = new Employee();
+        BeanUtils.copyProperties(employeeDTO, employee);
+        // employee.setUpdateTime(LocalDateTime.now());
+        // employee.setCreateUser(BaseContext.getCurrentId());
+        employeeMapper.update(employee);//DAO持久层函数,动态修改相关属性
 
     }
 
